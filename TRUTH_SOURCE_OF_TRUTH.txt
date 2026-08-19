@@ -1,0 +1,285 @@
+================================================================================
+TRUTH DOCUMENT  |  REPO 2: React + Next.js  |  CZ JS Containerization Rules
+================================================================================
+
+PURPOSE: Source-of-truth mapping for CZ JavaScript FE Containerization rules.
+Compare each entry below against the Modernize scan JSON for this ingested repo.
+Each rule (blocker or booster) is seeded AT LEAST ONCE.
+
+Frameworks in this repo : React + Next.js (cz-js-1024..1047)
+Total rule instances    : 24
+Unique ruleIds          : 24
+Blockers / Boosters     : 18 / 6
+
+LEGEND: [LOC] = line number in file where the scanner should flag the issue.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1024  [BLOCKER]
+NAME : Hardcoded Asset Paths in React Configuration
+FW   : React   |   CATEGORY: File System & Storage
+FILE : .env
+LOC  : line 3
+CODE : REACT_APP_ASSET_PATH=/home/devuser/project/build/static
+WHY  : Hardcoded absolute asset path in .env breaks ephemeral container FS; use relative paths/cloud URLs.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1025  [BLOCKER]
+NAME : React File Upload to Local Container Filesystem
+FW   : React   |   CATEGORY: File System & Storage
+FILE : src/api/upload.js
+LOC  : line 6
+CODE : fs.writeFileSync('/app/build/uploads/' + file.name, file);
+WHY  : File upload writes to local container FS '/app/build/uploads/' — lost on restart/scaling; use S3/Azure Blob/GCS.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1026  [BLOCKER]
+NAME : Large State in React Context Without Externalization
+FW   : React   |   CATEGORY: File System & Storage
+FILE : src/store/AppContext.js
+LOC  : line 4
+CODE : const bigState = new Array(1000000).fill({ data: 'x' });
+WHY  : Large state in React Context/Redux without externalization causes OOM in resource-limited containers; use Redis/API backend.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1027  [BLOCKER]
+NAME : Hardcoded API Ports in React Fetch Calls
+FW   : React   |   CATEGORY: Network & Port Configuration
+FILE : src/api/upload.js
+LOC  : line 11
+CODE : return fetch('http://backend:8080/api/data');
+WHY  : Hardcoded API port ':8080' in fetch breaks K8s service/Istio port mapping; use REACT_APP_API_URL env.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1028  [BLOCKER]
+NAME : Localhost URLs in React API Calls
+FW   : React   |   CATEGORY: Network & Port Configuration
+FILE : src/api/upload.js
+LOC  : line 15
+CODE : return fetch('http://localhost:3001/api/info');
+WHY  : localhost URL breaks separate-pod network namespaces; use K8s service DNS names.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1029  [BLOCKER]
+NAME : Hardcoded Backend URLs in React Environment Variables
+FW   : React   |   CATEGORY: Network & Port Configuration
+FILE : .env
+LOC  : line 5
+CODE : REACT_APP_API_URL=http://backend.prod.acme.com/api
+WHY  : Hardcoded backend URL in .env prevents K8s ingress/service-mesh routing; inject at runtime.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1030  [BLOCKER]
+NAME : React CORS Handling for Containerized Microservices
+FW   : React   |   CATEGORY: Network & Port Configuration
+FILE : src/api/upload.js
+LOC  : line 19
+CODE : return fetch('http://api.other-origin.com/data').then(r => r.json());
+WHY  : fetch without CORS error handling breaks cross-origin containerized microservices under network policies.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1031  [BLOCKER]
+NAME : React Context or Redux with In-Memory Sessions
+FW   : React   |   CATEGORY: State & Session Management
+FILE : src/store/AppContext.js
+LOC  : line 8
+CODE : export const session = { userId: null, token: null };
+WHY  : In-memory session state in Context/Redux breaks across multi-replica pods without affinity; externalize to Redis/Memcached.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1032  [BLOCKER]
+NAME : React localStorage for Critical Application State
+FW   : React   |   CATEGORY: State & Session Management
+FILE : src/store/AppContext.js
+LOC  : line 12
+CODE : localStorage.setItem('pendingOrder', JSON.stringify(order));
+WHY  : Critical app state in localStorage causes inconsistency across replicas; sync via Redis/PostgreSQL API.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1033  [BLOCKER]
+NAME : Hardcoded API Keys in React Environment Variables
+FW   : React   |   CATEGORY: Configuration Management
+FILE : .env
+LOC  : line 7
+CODE : REACT_APP_API_KEY=sk_live_REACT_HARDCODED_SECRET_4321
+WHY  : Hardcoded REACT_APP_API_KEY baked into image is a security risk; use Kubernetes Secrets/runtime injection.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1034  [BLOCKER]
+NAME : Build-Time Environment Variables in React
+FW   : React   |   CATEGORY: Configuration Management
+FILE : src/config/runtime.js
+LOC  : line 3
+CODE : apiUrl: process.env.REACT_APP_API_URL,  // baked at build time
+WHY  : Build-time REACT_APP_* vars compiled during npm build prevent image reuse; use runtime window.__ENV__/config.js.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1035  [BLOCKER]
+NAME : Missing Browser API Checks in React SSR
+FW   : React   |   CATEGORY: Configuration Management
+FILE : src/components/Profile.jsx
+LOC  : line 5
+CODE : const width = window.innerWidth;
+WHY  : Accesses window/localStorage without typeof window check — crashes Next.js SSR pods during server render.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1036  [BLOCKER]
+NAME : Missing Container Environment Detection in React
+FW   : React   |   CATEGORY: Configuration Management
+FILE : src/components/Profile.jsx
+LOC  : line 8
+CODE : console.log('rendering profile');
+WHY  : No container env detection (process.env.KUBERNETES_SERVICE_HOST) to adapt logging/retry/caching for containerized runtime.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1037  [BLOCKER]
+NAME : React Build Without Production Optimization
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : Dockerfile
+LOC  : line 7
+CODE : RUN npm run build
+WHY  : 'npm run build' without NODE_ENV=production yields large unoptimized bundle with dev code; bloats image, slows pod startup.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1038  [BLOCKER]
+NAME : Missing Multi-Stage Dockerfile for React Apps
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : Dockerfile
+LOC  : line 2
+CODE : FROM node:18
+WHY  : Single-stage Dockerfile ships Node/npm/webpack/source into final image (~10x bloat); need build+nginx:alpine runtime stages.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1039  [BLOCKER]
+NAME : React Build Output Path Hardcoded in Dockerfile
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : Dockerfile
+LOC  : line 9
+CODE : COPY /app/build /var/www/html
+WHY  : Hardcoded build/ output path breaks parameterized builds when webpack config changes; use build args.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1040  [BLOCKER]
+NAME : Next.js Hardcoded Port in Server Configuration
+FW   : Next.js   |   CATEGORY: React-Specific Containers
+FILE : server.js
+LOC  : line 6
+CODE : server.listen(3000);  // hardcoded port
+WHY  : Hardcoded port 3000 in Next.js server breaks K8s dynamic port assignment; use PORT env var.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1041  [BLOCKER]
+NAME : React Router Base Path Hardcoded for Ingress
+FW   : React   |   CATEGORY: React-Specific Containers
+FILE : src/index.js
+LOC  : line 6
+CODE : return <BrowserRouter basename='/myapp'></BrowserRouter>;
+WHY  : Hardcoded react-router basename '/myapp' breaks behind K8s ingress path routing; configure via env var.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1042  [BOOSTER]
+NAME : Runtime Configuration via window.__ENV__
+FW   : React   |   CATEGORY: Configuration Management
+FILE : public/config.js
+LOC  : line 3
+CODE : API_URL: '${API_URL}',  // injected at container startup
+WHY  : BOOSTER: Runtime config via window.__ENV__ injected at startup enables single image across envs (12-factor).
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1043  [BOOSTER]
+NAME : React Production Build with Optimization
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : src/build.note.js
+LOC  : line 2
+CODE : // build script: NODE_ENV=production npm run build
+WHY  : BOOSTER: NODE_ENV=production build enables minify/dead-code-elim, ~70-80% smaller image.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1044  [BOOSTER]
+NAME : Multi-Stage Dockerfile with nginx:alpine for React
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : Dockerfile.prod
+LOC  : line 6
+CODE : FROM nginx:alpine
+WHY  : BOOSTER: Multi-stage + nginx:alpine runtime yields minimal (<40MB) production image.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1045  [BOOSTER]
+NAME : Stateless React Components with API-Driven State
+FW   : React   |   CATEGORY: State & Session Management
+FILE : src/components/Stateless.jsx
+LOC  : line 7
+CODE : useEffect(() => { fetch('/api/items').then(r => r.json()).then(setItems); }, []);
+WHY  : BOOSTER: Stateless component drives all state via API (no server-side state), enables horizontal scaling.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1046  [BOOSTER]
+NAME : Health Check Route in Next.js API
+FW   : Next.js   |   CATEGORY: Monitoring & Health
+FILE : pages/api/health.js
+LOC  : line 3
+CODE : res.status(200).json({ status: 'UP' });
+WHY  : BOOSTER: /api/health route enables K8s liveness/readiness probes, zero-downtime deploys.
+
+--------------------------------------------------------------------------------
+
+RULE : cz-js-1047  [BOOSTER]
+NAME : React Code Splitting for Container Efficiency
+FW   : React   |   CATEGORY: Build & Deployment
+FILE : src/components/Stateless.jsx
+LOC  : line 3
+CODE : const Heavy = lazy(() => import('./Heavy'));
+WHY  : BOOSTER: React.lazy + dynamic import code-splitting reduces initial bundle/image size, faster pod startup.
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+QUICK REFERENCE MATRIX (ruleId -> file:line)
+================================================================================
+cz-js-1024     BLOCKER  .env:3
+cz-js-1025     BLOCKER  src/api/upload.js:6
+cz-js-1026     BLOCKER  src/store/AppContext.js:4
+cz-js-1027     BLOCKER  src/api/upload.js:11
+cz-js-1028     BLOCKER  src/api/upload.js:15
+cz-js-1029     BLOCKER  .env:5
+cz-js-1030     BLOCKER  src/api/upload.js:19
+cz-js-1031     BLOCKER  src/store/AppContext.js:8
+cz-js-1032     BLOCKER  src/store/AppContext.js:12
+cz-js-1033     BLOCKER  .env:7
+cz-js-1034     BLOCKER  src/config/runtime.js:3
+cz-js-1035     BLOCKER  src/components/Profile.jsx:5
+cz-js-1036     BLOCKER  src/components/Profile.jsx:8
+cz-js-1037     BLOCKER  Dockerfile:7
+cz-js-1038     BLOCKER  Dockerfile:2
+cz-js-1039     BLOCKER  Dockerfile:9
+cz-js-1040     BLOCKER  server.js:6
+cz-js-1041     BLOCKER  src/index.js:6
+cz-js-1042     BOOSTER  public/config.js:3
+cz-js-1043     BOOSTER  src/build.note.js:2
+cz-js-1044     BOOSTER  Dockerfile.prod:6
+cz-js-1045     BOOSTER  src/components/Stateless.jsx:7
+cz-js-1046     BOOSTER  pages/api/health.js:3
+cz-js-1047     BOOSTER  src/components/Stateless.jsx:3
