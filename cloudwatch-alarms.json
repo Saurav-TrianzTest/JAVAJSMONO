@@ -1,0 +1,162 @@
+{
+  "alarms": [
+    {
+      "alarmName": "react-nextjs-host-memory-warning",
+      "alarmDescription": "Alert when container memory usage exceeds 70% threshold (cz-js-1026 fix)",
+      "actionsEnabled": true,
+      "alarmActions": [
+        "arn:aws:sns:REGION:ACCOUNT_ID:ecs-alerts"
+      ],
+      "metricName": "MemoryUtilization",
+      "namespace": "AWS/ECS",
+      "statistic": "Average",
+      "dimensions": [
+        {
+          "name": "ServiceName",
+          "value": "react-nextjs-host-service"
+        },
+        {
+          "name": "ClusterName",
+          "value": "production-cluster"
+        }
+      ],
+      "period": 300,
+      "evaluationPeriods": 2,
+      "threshold": 70.0,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarmName": "react-nextjs-host-memory-critical",
+      "alarmDescription": "Critical alert when container memory usage exceeds 85% threshold - triggers scale-out (cz-js-1026 fix)",
+      "actionsEnabled": true,
+      "alarmActions": [
+        "arn:aws:sns:REGION:ACCOUNT_ID:ecs-critical-alerts",
+        "arn:aws:autoscaling:REGION:ACCOUNT_ID:scalingPolicy:POLICY_ID:resource/ecs/service/production-cluster/react-nextjs-host-service:policyName/scale-out-policy"
+      ],
+      "metricName": "MemoryUtilization",
+      "namespace": "AWS/ECS",
+      "statistic": "Average",
+      "dimensions": [
+        {
+          "name": "ServiceName",
+          "value": "react-nextjs-host-service"
+        },
+        {
+          "name": "ClusterName",
+          "value": "production-cluster"
+        }
+      ],
+      "period": 60,
+      "evaluationPeriods": 2,
+      "threshold": 85.0,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "breaching"
+    },
+    {
+      "alarmName": "react-nextjs-host-unhealthy-tasks",
+      "alarmDescription": "Alert when ECS service has unhealthy tasks due to failed health checks (cz-js-1026 fix)",
+      "actionsEnabled": true,
+      "alarmActions": [
+        "arn:aws:sns:REGION:ACCOUNT_ID:ecs-alerts"
+      ],
+      "metricName": "HealthyHostCount",
+      "namespace": "AWS/ApplicationELB",
+      "statistic": "Average",
+      "dimensions": [
+        {
+          "name": "TargetGroup",
+          "value": "targetgroup/react-nextjs-tg/XXXXXXXXXXXX"
+        },
+        {
+          "name": "LoadBalancer",
+          "value": "app/react-nextjs-alb/XXXXXXXXXXXX"
+        }
+      ],
+      "period": 60,
+      "evaluationPeriods": 2,
+      "threshold": 1.0,
+      "comparisonOperator": "LessThanThreshold",
+      "treatMissingData": "breaching"
+    },
+    {
+      "alarmName": "react-nextjs-host-oom-kills",
+      "alarmDescription": "Alert on container OOM kills - indicates memory needs to be increased (cz-js-1026 fix)",
+      "actionsEnabled": true,
+      "alarmActions": [
+        "arn:aws:sns:REGION:ACCOUNT_ID:ecs-critical-alerts"
+      ],
+      "metricName": "ContainerInstanceCount",
+      "namespace": "ECS/ContainerInsights",
+      "statistic": "Sum",
+      "dimensions": [
+        {
+          "name": "ServiceName",
+          "value": "react-nextjs-host-service"
+        },
+        {
+          "name": "ClusterName",
+          "value": "production-cluster"
+        }
+      ],
+      "period": 300,
+      "evaluationPeriods": 1,
+      "threshold": 0.0,
+      "comparisonOperator": "GreaterThanThreshold",
+      "treatMissingData": "notBreaching"
+    }
+  ],
+  "dashboards": [
+    {
+      "dashboardName": "react-nextjs-host-memory-monitoring",
+      "dashboardBody": {
+        "widgets": [
+          {
+            "type": "metric",
+            "properties": {
+              "metrics": [
+                ["AWS/ECS", "MemoryUtilization", {"stat": "Average"}],
+                [".", ".", {"stat": "Maximum"}]
+              ],
+              "period": 300,
+              "stat": "Average",
+              "region": "REGION",
+              "title": "ECS Memory Utilization",
+              "yAxis": {
+                "left": {
+                  "min": 0,
+                  "max": 100
+                }
+              },
+              "annotations": {
+                "horizontal": [
+                  {
+                    "label": "Warning Threshold",
+                    "value": 70
+                  },
+                  {
+                    "label": "Critical Threshold",
+                    "value": 85
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "metric",
+            "properties": {
+              "metrics": [
+                ["AWS/ApplicationELB", "HealthyHostCount"],
+                [".", "UnHealthyHostCount"]
+              ],
+              "period": 60,
+              "stat": "Average",
+              "region": "REGION",
+              "title": "Target Group Health Status"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

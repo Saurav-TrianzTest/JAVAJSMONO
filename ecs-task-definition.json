@@ -1,0 +1,173 @@
+{
+  "family": "react-nextjs-host",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "nginx-cors-proxy",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/react-nextjs-nginx-proxy:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "dependsOn": [
+        {
+          "containerName": "react-nextjs-container",
+          "condition": "START"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "wget --quiet --tries=1 --spider http://localhost:80/api/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/react-nextjs-nginx-proxy",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "nginx",
+          "awslogs-create-group": "true"
+        }
+      },
+      "ulimits": [
+        {
+          "name": "nofile",
+          "softLimit": 65536,
+          "hardLimit": 65536
+        }
+      ]
+    },
+    {
+      "name": "react-nextjs-container",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/react-nextjs-host:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "ENVIRONMENT",
+          "value": "production"
+        },
+        {
+          "name": "FARGATE_TASK_MEMORY_MB",
+          "value": "2048"
+        },
+        {
+          "name": "MEMORY_WARNING_THRESHOLD",
+          "value": "70"
+        },
+        {
+          "name": "MEMORY_CRITICAL_THRESHOLD",
+          "value": "85"
+        },
+        {
+          "name": "HEALTH_CHECK_INTERVAL_MS",
+          "value": "30000"
+        },
+        {
+          "name": "ENABLE_MEMORY_MONITORING",
+          "value": "true"
+        },
+        {
+          "name": "MAX_STATE_CACHE_SIZE",
+          "value": "100"
+        },
+        {
+          "name": "STATE_CACHE_TTL_MS",
+          "value": "60000"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "PORT",
+          "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:react-nextjs/port"
+        },
+        {
+          "name": "API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:react-nextjs/api-key"
+        },
+        {
+          "name": "REDIS_HOST",
+          "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:react-nextjs/redis-host"
+        },
+        {
+          "name": "REDIS_PORT",
+          "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:react-nextjs/redis-port"
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "valueFrom": "arn:aws:secretsmanager:REGION:ACCOUNT_ID:secret:react-nextjs/redis-password"
+        },
+        {
+          "name": "API_URL",
+          "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/react-nextjs/production/api-url"
+        },
+        {
+          "name": "FEATURE_FLAG",
+          "valueFrom": "arn:aws:ssm:REGION:ACCOUNT_ID:parameter/react-nextjs/production/feature-flag"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/api/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/react-nextjs-host",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      },
+      "ulimits": [
+        {
+          "name": "nofile",
+          "softLimit": 65536,
+          "hardLimit": 65536
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "key": "Application",
+      "value": "react-nextjs-host"
+    },
+    {
+      "key": "Environment",
+      "value": "production"
+    },
+    {
+      "key": "ManagedBy",
+      "value": "containerization-fix"
+    },
+    {
+      "key": "FixedBlocker",
+      "value": "cz-js-1026,cz-js-1030,cz-js-1040,cz-js-1058"
+    }
+  ]
+}

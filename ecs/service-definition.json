@@ -1,0 +1,38 @@
+{
+  "serviceName": "react-nextjs-host-service",
+  "cluster": "{{CLUSTER_NAME}}",
+  "taskDefinition": "react-nextjs-host-task",
+  "desiredCount": 2,
+  "launchType": "FARGATE",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": ["{{SUBNET_1}}", "{{SUBNET_2}}"],
+      "securityGroups": ["{{SECURITY_GROUP}}"],
+      "assignPublicIp": "ENABLED"
+    }
+  },
+  "deploymentConfiguration": {
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 50
+  },
+  "loadBalancers": [
+    {
+      "targetGroupArn": "{{TARGET_GROUP_ARN}}",
+      "containerName": "react-nextjs-host",
+      "containerPort": 8080
+    }
+  ],
+  "healthCheckGracePeriodSeconds": 300,
+  "enableECSManagedTags": true,
+  "propagateTags": "SERVICE",
+  "tags": [
+    {
+      "key": "Environment",
+      "value": "production"
+    },
+    {
+      "key": "Application",
+      "value": "react-nextjs-host"
+    }
+  ]
+}

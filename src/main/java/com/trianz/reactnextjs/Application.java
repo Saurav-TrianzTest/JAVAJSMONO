@@ -2,6 +2,7 @@ package com.trianz.reactnextjs;
 
 import com.sun.net.httpserver.HttpServer;
 import com.trianz.reactnextjs.controller.HealthController;
+import com.trianz.reactnextjs.controller.UploadController;
 
 import java.net.InetSocketAddress;
 
@@ -22,6 +23,8 @@ public class Application {
         int port = 8080;
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/api/health", new HealthController());
+        server.createContext("/api/upload/presigned-url", new UploadController());
+        server.createContext("/api/upload/confirm", new UploadController());
         server.setExecutor(null);
         server.start();
         System.out.println("react-nextjs-host listening on port " + port);

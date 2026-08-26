@@ -1,0 +1,22 @@
+# cz-js-1030 FIX: NGINX Sidecar Dockerfile for CORS Proxy
+# This Dockerfile creates an NGINX reverse proxy container
+# to handle CORS headers in ECS Fargate task definition
+
+FROM nginx:1.25-alpine
+
+# Copy custom NGINX configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create log directory
+RUN mkdir -p /var/log/nginx && \
+    chown -R nginx:nginx /var/log/nginx
+
+# Expose port 80 for the proxy
+EXPOSE 80
+
+# Health check for the NGINX container
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:80/api/health || exit 1
+
+# Run NGINX in foreground
+CMD ["nginx", "-g", "daemon off;"]

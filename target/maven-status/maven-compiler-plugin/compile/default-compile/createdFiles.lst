@@ -1,0 +1,5 @@
+com/trianz/reactnextjs/service/HealthService.class
+com/trianz/reactnextjs/controller/UploadController.class
+com/trianz/reactnextjs/controller/HealthController.class
+com/trianz/reactnextjs/Application.class
+com/trianz/reactnextjs/service/S3PresignedUrlService.class

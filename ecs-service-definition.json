@@ -1,0 +1,71 @@
+{
+  "serviceName": "react-nextjs-host-service",
+  "cluster": "production-cluster",
+  "taskDefinition": "react-nextjs-host:LATEST",
+  "desiredCount": 2,
+  "launchType": "FARGATE",
+  "platformVersion": "LATEST",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        "subnet-XXXXXXXXX",
+        "subnet-YYYYYYYYY"
+      ],
+      "securityGroups": [
+        "sg-XXXXXXXXX"
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  },
+  "loadBalancers": [
+    {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:REGION:ACCOUNT_ID:targetgroup/react-nextjs-tg/XXXXXXXXXXXX",
+      "containerName": "react-nextjs-container",
+      "containerPort": 80
+    }
+  ],
+  "healthCheckGracePeriodSeconds": 60,
+  "deploymentConfiguration": {
+    "maximumPercent": 200,
+    "minimumHealthyPercent": 100,
+    "deploymentCircuitBreaker": {
+      "enable": true,
+      "rollback": true
+    }
+  },
+  "deploymentController": {
+    "type": "ECS"
+  },
+  "enableECSManagedTags": true,
+  "propagateTags": "SERVICE",
+  "enableExecuteCommand": true,
+  "tags": [
+    {
+      "key": "Application",
+      "value": "react-nextjs-host"
+    },
+    {
+      "key": "Environment",
+      "value": "production"
+    },
+    {
+      "key": "ManagedBy",
+      "value": "containerization-fix"
+    },
+    {
+      "key": "FixedBlocker",
+      "value": "cz-js-1026"
+    },
+    {
+      "key": "HealthCheckEnabled",
+      "value": "true"
+    },
+    {
+      "key": "AutoRestartOnOOM",
+      "value": "true"
+    }
+  ],
+  "serviceRegistries": [],
+  "placementConstraints": [],
+  "placementStrategy": []
+}
