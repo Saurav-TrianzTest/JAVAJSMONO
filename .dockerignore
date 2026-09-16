@@ -1,0 +1,55 @@
+# Java / Maven build artefacts
+target/
+*.class
+*.jar
+*.war
+
+# Git
+.git/
+.gitignore
+
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven wrapper (NEVER copy into image – use system mvn)
+mvnw
+mvnw.cmd
+.mvn/
+
+# Gradle wrapper (not used here, but excluded for safety)
+gradlew
+gradlew.bat
+gradle/wrapper/
+.gradle/
+
+# Documentation / markdown
+*.md
+docs/
+
+# Test reports
+surefire-reports/
+
+# Logs
+logs/
+*.log
+
+# Environment files (may contain secrets)
+.env
+.env.*
+
+# Docker artefacts already in image context
+docker-compose*.yml
+Dockerfile*

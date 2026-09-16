@@ -1,0 +1,46 @@
+version: "3.9"
+
+# =============================================================================
+# docker-compose.yml – react-nextjs-host (application only)
+# External services (databases, caches, queues) are NOT included here.
+# Connect them via the environment variables below.
+# =============================================================================
+
+services:
+  react-nextjs-host:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: react-nextjs-host:latest
+    container_name: react-nextjs-host
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      # JVM settings
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -XX:+UnlockExperimentalVMOptions -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF-8"
+      # Application settings
+      APP_PORT: "8080"
+      TZ: "UTC"
+      # External service connections (override as needed)
+      # DATABASE_URL: "jdbc:postgresql://db-host:5432/mydb"
+      # REDIS_URL: "redis://redis-host:6379"
+
+    volumes:
+      - ./logs:/app/logs
+
+    networks:
+      - app-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  app-network:
+    driver: bridge
