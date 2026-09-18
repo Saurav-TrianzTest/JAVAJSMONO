@@ -1,0 +1,54 @@
+# Java / Maven build artifacts
+target/
+*.class
+*.jar
+*.war
+
+# Git
+.git/
+.gitignore
+
+# Maven wrapper — NEVER copy into Docker image
+mvnw
+mvnw.cmd
+.mvn/
+
+# Gradle wrapper (not used here, but excluded for safety)
+gradlew
+gradlew.bat
+gradle/wrapper/
+
+# IDE / editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# Test reports
+surefire-reports/
+
+# Logs
+logs/
+*.log
+
+# Node / frontend artefacts (present in this repo but not part of Java build)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+build/
+dist/
