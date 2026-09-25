@@ -1,0 +1,51 @@
+# Java / Maven build artifacts
+target/
+*.class
+
+# Git
+.git/
+.gitignore
+
+# IDE / editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Maven wrapper — NEVER used inside Docker; system mvn is used instead
+mvnw
+mvnw.cmd
+.mvn/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+docs/
+
+# Test reports
+surefire-reports/
+
+# Logs
+logs/
+*.log
+
+# Environment files (may contain secrets)
+.env
+.env.*
+
+# Node / JS artefacts (frontend files not part of Java build)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+build/
+dist/
